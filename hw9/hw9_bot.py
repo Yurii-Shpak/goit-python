@@ -82,7 +82,10 @@ def show_func(command_line):
     result = ''
     for key, value in contacts.items():
         result += f'{key} {value}\n'
-    return result
+    if result:
+        return result[:-1]
+    else:
+        return 'The dict is empty.'
 
 
 COMMANDS = {
