@@ -94,7 +94,7 @@ def input_error(func):
             if func.__name__ == 'change_func':
                 result = f'Give me the name, the old phone number and a new phone number, please. Separate them with the space symbol.'
             if func.__name__ == 'delete_func':
-                result = f'Give me the name, please, or the name and the phone number separated with the space symbol.'
+                result = f'Give me the name and the phone number separated with the space symbol, please.'
             if func.__name__ == 'phone_func':
                 result = 'Enter the name of an existing contact, please.'
                 
