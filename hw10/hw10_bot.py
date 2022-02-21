@@ -3,11 +3,7 @@ from collections import UserDict
 
 class AddressBook(UserDict):
 
-    def add_record(self, name, phone=''):
-        if phone:
-            record = Record(Name(name), [Phone(phone)])
-        else:
-            record = Record(Name(name), [])
+    def add_record(self, record):
         self.data[record.name.value] = record
 
     def remove_record(self, name):
@@ -46,11 +42,7 @@ class Record:
         self.phones_list = phones_list
 
     def add_phone(self, phone):
-        if phone in [i.value for i in self.phones_list]: 
-            return False  # Игнорируем существующий номер
-        else:
-            self.phones_list.append(Phone(phone))
-            return True
+        self.phones_list.append(phone)
 
     def change_phone(self, old_phone, new_phone):
         if self.has_phone(old_phone):
@@ -109,16 +101,18 @@ def add_func(command_line):
     name, phone, dummy = get_name_phone(command_line)
         
     if contacts.has_record(name):
-        if contacts.get_record(name).add_phone(phone):
-            result = f'The phone number {phone} for the name "{name}" is added.'
-        else:
+        record = contacts.get_record(name)
+        if phone in [i.value for i in record.phones_list]: 
             result = f'The phone number {phone} for the name "{name}" exists already.'
+        else:
+            record.add_phone(Phone(phone))
+            result = f'The phone number {phone} for the name "{name}" is added.'
     else:
         if phone:
-            contacts.add_record(name, phone)
+            contacts.add_record(Record(Name(name), [Phone(phone)]))
             result = f'Record for "{name}" with the phone number {phone} is added.'
         else:
-            contacts.add_record(name)
+            contacts.add_record(Record(Name(name), []))
             result = f'Record for "{name}" without a phone number is added.'
 
     return result
@@ -272,7 +266,7 @@ def main():
             right_command = command in ONE_WORD_COMMANDS
             
         if not right_command:
-            print(f'The "{command}" command is wrong! The allowable commands are hello, add, change, phone, show all, good bye, close, exit.')
+            print(f'The "{command}" command is wrong! The allowable commands are {", ".join(ONE_WORD_COMMANDS)}.')
             continue
         
         handler = get_handler(command)
