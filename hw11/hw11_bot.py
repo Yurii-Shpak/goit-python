@@ -37,8 +37,31 @@ class AddressBook(UserDict):
     def has_record(self, name):
         return name in self.data.keys()
 
-    def iterator(self):
-        return Iterator()
+    def iterator(self, rec_per_page):
+        global records_per_page
+        records_per_page = rec_per_page
+        dict_length = len(contacts)
+        pages = dict_length // records_per_page
+        if dict_length % records_per_page > 0:
+            pages += 1
+        contacts_list = [[name, record] for name, record in contacts.items()]
+        counter = 0
+        page_counter = 1
+        while True:
+            print('\n' + '-' * 15)
+            print(f'Page #{page_counter} of {pages}')
+            print('-' * 40)
+            for i in Iterator():
+                result = form_record(contacts_list[counter][0], contacts_list[counter][1], '')
+                print(result[:-1])
+                counter += 1
+                if counter == dict_length:
+                    break
+            if counter == dict_length:
+                break
+            print('-' * 40)
+            input(f'Press [ENTER] to view next {records_per_page} records.')
+            page_counter += 1
 
 
 contacts = AddressBook()
@@ -375,30 +398,8 @@ def show_func(command_line):
     result = ''
     if command_line:                        # Если указано что-то после show all (пагинация)
         if is_integer(command_line[-1]):    # Если последним указано целое число (записей на страницу)
-            dict_length = len(contacts)
-            if dict_length > 0:
-                records_per_page = int(command_line[-1])
-                pages = dict_length // records_per_page
-                if dict_length % records_per_page > 0:
-                    pages += 1
-                contacts_list = [[name, record] for name, record in contacts.items()]
-                counter = 0
-                page_counter = 1
-                while True:
-                    print('\n' + '-' * 15)
-                    print(f'Page #{page_counter} of {pages}')
-                    print('-' * 40)
-                    for i in contacts.iterator():
-                        result = form_record(contacts_list[counter][0], contacts_list[counter][1], '')
-                        print(result[:-1])
-                        counter += 1
-                        if counter == dict_length:
-                            break
-                    if counter == dict_length:
-                        break
-                    print('-' * 40)
-                    input(f'Press [ENTER] to view next {records_per_page} records.')
-                    page_counter += 1
+            if len(contacts) > 0:
+                contacts.iterator(int(command_line[-1]))
                 return '-' * 40 + '\nThe end of the dict.'
             else:
                 return 'The dict is empty.'
