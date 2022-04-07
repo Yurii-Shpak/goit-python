@@ -30,13 +30,11 @@ class AddressBook(UserDict):
             print('\n' + '-' * 15)
             print(f'Page #{page_counter} of {pages}')
             print('-' * 40)
-            print('\n'.join([form_record(item[0], item[1], '')[:-1] for item in contacts_list[counter:limit]]))
+            yield page_counter == pages, '\n'.join([form_record(item[0], item[1], '')[:-1] for item in contacts_list[counter:limit]])
             counter += records_per_page
             limit += records_per_page
             if counter >= dict_length:
                 break
-            print('-' * 40)
-            input(f'Press [ENTER] to view next {records_per_page} records.')
             page_counter += 1
 
 
@@ -367,15 +365,18 @@ def form_record(name, record, result):
     return result
 
 
-#@input_error
+@input_error
 def show_func(command_line):
 
-    global records_per_page
     result = ''
     if command_line:                        # Если указано что-то после show all (пагинация)
         if is_integer(command_line[-1]):    # Если последним указано целое число (записей на страницу)
             if len(contacts) > 0:
-                contacts.iterator(int(command_line[-1]))
+                for is_last_page, page in contacts.iterator(int(command_line[-1])):
+                    print(page)
+                    if not is_last_page:
+                        print('-' * 40)
+                        input(f'Press [ENTER] to view next {command_line[-1]} records.')
                 return '-' * 40 + '\nThe end of the dict.'
             else:
                 return 'The dict is empty.'
