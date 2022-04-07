@@ -3,26 +3,6 @@ from datetime import datetime
 import re
 
 
-records_per_page = 20
-
-class Iterable:
-    
-    def __init__(self):
-        self.current_value = 0
-
-    def __next__(self):
-
-        if self.current_value < records_per_page:
-            self.current_value += 1
-            return self.current_value
-        raise StopIteration
-
-
-class Iterator:
-    def __iter__(self):
-        return Iterable()
- 
-
 class AddressBook(UserDict):
 
     def add_record(self, record):
@@ -37,27 +17,23 @@ class AddressBook(UserDict):
     def has_record(self, name):
         return name in self.data.keys()
 
-    def iterator(self, rec_per_page):
-        global records_per_page
-        records_per_page = rec_per_page
+    def iterator(self, records_per_page=20):
         dict_length = len(contacts)
         pages = dict_length // records_per_page
         if dict_length % records_per_page > 0:
             pages += 1
         contacts_list = [[name, record] for name, record in contacts.items()]
         counter = 0
+        limit = records_per_page
         page_counter = 1
         while True:
             print('\n' + '-' * 15)
             print(f'Page #{page_counter} of {pages}')
             print('-' * 40)
-            for i in Iterator():
-                result = form_record(contacts_list[counter][0], contacts_list[counter][1], '')
-                print(result[:-1])
-                counter += 1
-                if counter == dict_length:
-                    break
-            if counter == dict_length:
+            print('\n'.join([form_record(item[0], item[1], '')[:-1] for item in contacts_list[counter:limit]]))
+            counter += records_per_page
+            limit += records_per_page
+            if counter >= dict_length:
                 break
             print('-' * 40)
             input(f'Press [ENTER] to view next {records_per_page} records.')
@@ -391,7 +367,7 @@ def form_record(name, record, result):
     return result
 
 
-@input_error
+#@input_error
 def show_func(command_line):
 
     global records_per_page
