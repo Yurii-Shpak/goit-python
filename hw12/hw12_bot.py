@@ -39,6 +39,22 @@ class AddressBook(UserDict):
                 break
             page_counter += 1
 
+    def load_from_file(self, file_name):
+        if os.path.exists(file_name):
+            with open(file_name, 'rb') as fh:
+                self.data = pickle.load(fh)
+                if len(self.data):
+                    return f'The contacts book is loaded from the file "{file_name}".'
+                else:
+                    return 'This is empty contacts book. Add contacts to it.'
+        else:
+            return 'This is empty contacts book. Add contacts into it.'
+
+    def save_to_file(self, file_name):
+        with open(file_name, 'wb') as fh:
+            pickle.dump(self.data, fh)
+        return f'The contacts book is saved in the file "{file_name}".'
+
 
 contacts = AddressBook()
 
@@ -340,6 +356,12 @@ def remove_func(command_line):
 
 
 @input_error
+def save_func(command_line):
+
+    return contacts.save_to_file('contacts.bin')
+
+
+@input_error
 def set_birthday_func(command_line):
 
     if command_line:    
@@ -400,7 +422,7 @@ def show_func(command_line):
                         input(f'Press [ENTER] to view next {command_line[-1]} records.')
                 return '-' * 40 + '\nThe end of the dict.'
             else:
-                return 'The dict is empty.'
+                return 'The contacts book is empty.'
         else:
             return 'State number of records per page. For example, "show all by 10" or "show all 10".'
     else:
@@ -426,12 +448,13 @@ COMMANDS = {
     'hello': hello_func,
     'phone': phone_func,
     'remove': remove_func,
+    'save': save_func,
     'set birthday': set_birthday_func,
     'show all': show_func
 }
 
 
-ONE_WORD_COMMANDS = ('add', 'birthday', 'change', 'close', 'delete', 'exit', 'find', 'hello', 'phone', 'remove')
+ONE_WORD_COMMANDS = ('add', 'birthday', 'change', 'close', 'delete', 'exit', 'find', 'hello', 'phone', 'remove', 'save')
 TWO_WORDS_COMMANDS = ('good bye', 'set birthday', 'show all')
 
 
@@ -441,9 +464,7 @@ def get_handler(command):
 
 def main():
 
-    if os.path.exists('contacts.bin'):
-        with open('contacts.bin', 'rb') as fh:
-            contacts.data = pickle.load(fh)
+    print(contacts.load_from_file('contacts.bin'))
 
     while True:
         command_line = []
@@ -468,8 +489,7 @@ def main():
         handler = get_handler(command)
         print(handler(command_line))
         if handler is exit_func:
-            with open('contacts.bin', 'wb') as fh:
-                pickle.dump(contacts.data, fh)
+            print(contacts.save_to_file('contacts.bin'))
             break
 
 if __name__ == '__main__':
