@@ -6,24 +6,34 @@ import pickle
 class SerializationInterface(ABC):
 
     @abstractmethod
-    def save_to_json_file(self, data, file):
+    def save_to_file(self, data, file):
         pass
 
     @abstractmethod
-    def load_from_json_file(self, file):
+    def load_from_file(self, file):
         pass
 
 
-class Serialize(SerializationInterface):
+class SerializeJSON(SerializationInterface):
 
-    def save_to_json_file(self, data, file):
-        data = json.dumps(data).encode('utf-8')
+    def save_to_file(self, data, file):
+        with open(file, 'w') as fh:
+            json.dump(data, fh)
+
+    def load_from_file(self, file):
+        with open(file, 'r') as fh:
+            return json.load(fh)
+
+
+class SerializeBIN(SerializationInterface):
+
+    def save_to_file(self, data, file):
         with open(file, 'wb') as fh:
             pickle.dump(data, fh)
 
-    def load_from_json_file(self, file):
+    def load_from_file(self, file):
         with open(file, 'rb') as fh:
-            return pickle.load(fh).decode('utf-8')
+            return pickle.load(fh)
 
 
 class_counter = 0
@@ -52,13 +62,12 @@ class Cls2(metaclass=Meta):
         self.data = data
 
 
-s = Serialize()
-s.save_to_json_file({'Name': 'Yurii Shpak', 'Age': 47}, 'dict.bin')
-print(s.load_from_json_file('dict.bin'))
-s.save_to_json_file('Name: Yurii Shpak, Age: 47', 'str.bin')
-print(s.load_from_json_file('str.bin'))
-s.save_to_json_file([1, 2, 3, 4, 5], 'list.bin')
-print(s.load_from_json_file('list.bin'))
+json_s = SerializeJSON()
+json_s.save_to_file({'Name': 'Yurii Shpak', 'Age': 47}, 'data.json')
+print(json_s.load_from_file('data.json'))
+bin_s = SerializeBIN()
+bin_s.save_to_file({'Name': 'Yurii Shpak', 'Age': 47}, 'data.bin')
+print(bin_s.load_from_file('data.bin'))
 
 assert (Cls1.class_number, Cls2.class_number) == (0, 1)
 a, b = Cls1(''), Cls2('')
