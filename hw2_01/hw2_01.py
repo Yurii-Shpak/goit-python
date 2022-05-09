@@ -36,16 +36,15 @@ class SerializeBIN(SerializationInterface):
             return pickle.load(fh)
 
 
-class_counter = 0
-
-
 class Meta(type):
 
-    def __init__(cls, name, bases, attrs):
-        global class_counter
-        super().__init__(name, bases, attrs)
-        cls.class_number = class_counter
-        class_counter += 1
+    def __new__(cls, name, bases, attrs):
+        attrs['class_number'] = Meta.class_number
+        Meta.class_number += 1
+        return super().__new__(cls, name, bases, attrs)
+
+
+Meta.class_number = 0
 
 
 class Cls1(metaclass=Meta):
