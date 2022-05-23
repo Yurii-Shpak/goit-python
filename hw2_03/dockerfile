@@ -1,0 +1,12 @@
+FROM python:latest
+
+MAINTAINER Yurii Shpak "yshpak.gora@gmail.com"
+
+COPY . /hw2_03
+
+WORKDIR /hw2_03
+
+RUN pip install -r requirements.txt
+
+ENTRYPOINT ["python"]
+CMD ["personal_helper.py"]
