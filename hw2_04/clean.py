@@ -16,6 +16,44 @@ files_info = {'images': [], 'archives': [], 'documents': [],
               'audio': [], 'video': [], 'unknown': [], 'known': []}
 
 
+class MyThread(Thread):
+
+    def __init__(self, file_type, extensions, item, folder, root):
+        super().__init__()
+        self.file_type = file_type
+        self.extensions = extensions
+        self.item = item
+        self.folder = folder
+        self.root = root
+
+    def run(self):
+
+        # Расширение файла
+        ext = self.item[self.item.rfind(".") + 1:]
+        ext_upper = ext.upper()
+        normalized_item = normalize(self.item)
+        # Определяем нормализованное имя папки назначения без учета корневой папки
+        destination_folder = normalize(self.folder.replace(self.root, ''))
+        destination_file_path = fr'{self.root}/{self.file_type}{destination_folder}/{normalized_item}'
+        if ext_upper in self.extensions:
+            files_info[self.file_type].append(destination_file_path)
+            if ext_upper not in files_info['known']:
+                files_info['known'].append(ext_upper)
+            create_folders_chain(destination_folder, self.root, self.file_type)
+            shutil.move(fr'{self.folder}/{self.item}', destination_file_path)
+
+            if self.file_type == 'archives':
+                archive_folder = normalized_item.removesuffix(f'.{ext}')
+                create_folders_chain(
+                    f'{destination_folder}/{archive_folder}', self.root, 'archives')
+                shutil.unpack_archive(
+                    destination_file_path, fr'{self.root}/archives{destination_folder}/{archive_folder}')
+                shutil.move(destination_file_path,
+                            fr'{self.root}/archives{destination_folder}/{archive_folder}')
+        else:
+            files_info['unknown'].append(ext_upper)
+
+
 def create_folder(name):
 
     if not os.path.exists(name):
@@ -77,44 +115,6 @@ def normalize(string):
         string = string.replace(key, translit_table[key])
 
     return re.sub('[^A-Za-z0-9_\./:]', '_', string)
-
-
-class MyThread(Thread):
-
-    def __init__(self, file_type, extensions, item, folder, root):
-        super().__init__()
-        self.file_type = file_type
-        self.extensions = extensions
-        self.item = item
-        self.folder = folder
-        self.root = root
-
-    def run(self):
-
-        # Расширение файла
-        ext = self.item[self.item.rfind(".") + 1:]
-        ext_upper = ext.upper()
-        normalized_item = normalize(self.item)
-        # Определяем нормализованное имя папки назначения без учета корневой папки
-        destination_folder = normalize(self.folder.replace(self.root, ''))
-        destination_file_path = fr'{self.root}/{self.file_type}{destination_folder}/{normalized_item}'
-        if ext_upper in self.extensions:
-            files_info[self.file_type].append(destination_file_path)
-            if ext_upper not in files_info['known']:
-                files_info['known'].append(ext_upper)
-            create_folders_chain(destination_folder, self.root, self.file_type)
-            shutil.move(fr'{self.folder}/{self.item}', destination_file_path)
-
-            if self.file_type == 'archives':
-                archive_folder = normalized_item.removesuffix(f'.{ext}')
-                create_folders_chain(
-                    f'{destination_folder}/{archive_folder}', self.root, 'archives')
-                shutil.unpack_archive(
-                    destination_file_path, fr'{self.root}/archives{destination_folder}/{archive_folder}')
-                shutil.move(destination_file_path,
-                            fr'{self.root}/archives{destination_folder}/{archive_folder}')
-        else:
-            files_info['unknown'].append(ext_upper)
 
 
 def order_files(folder, root):
