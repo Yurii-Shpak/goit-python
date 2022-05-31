@@ -15,6 +15,44 @@ FILE_TYPES = {'images': ('JPEG', 'PNG', 'JPG', 'SVG', 'BMP', 'TIF', 'TIFF', 'GIF
 files_info = {'images': [], 'archives': [], 'documents': [],
               'audio': [], 'video': [], 'unknown': [], 'known': []}
 
+TRANSLIT_TABLE = {'а': 'a', 'А': 'A',
+                  'б': 'b', 'Б': 'B',
+                  'в': 'v', 'В': 'V',
+                  'г': 'g', 'Г': 'G',
+                  'ґ': 'g', 'Ґ': 'G',
+                  'д': 'd', 'Д': 'D',
+                  'е': 'e', 'Е': 'E',
+                  'ё': 'io', 'Ё': 'Io',
+                  'є': 'ye', 'Є': 'Ye',
+                  'ж': 'zh', 'Ж': 'Zh',
+                  'з': 'z', 'З': 'Z',
+                  'и': 'i', 'И': 'I',
+                  'й': 'y', 'Й': 'Y',
+                  'і': 'i', 'І': 'I',
+                  'ї': 'yi', 'Ї': 'Yi',
+                  'к': 'k', 'К': 'K',
+                  'л': 'l', 'Л': 'L',
+                  'м': 'm', 'М': 'M',
+                  'н': 'n', 'Н': 'N',
+                  'о': 'o', 'О': 'O',
+                  'п': 'p', 'П': 'P',
+                  'р': 'r', 'Р': 'R',
+                  'с': 's', 'С': 'S',
+                  'т': 't', 'Т': 'T',
+                  'у': 'u', 'У': 'U',
+                  'ф': 'f', 'Ф': 'F',
+                  'х': 'h', 'Х': 'H',
+                  'ц': 'ts', 'Ц': 'Ts',
+                  'ч': 'ch', 'Ч': 'Ch',
+                  'ш': 'sh', 'Ш': 'Sh',
+                  'щ': 'sch', 'Щ': 'Sch',
+                  'ъ': '', 'Ъ': '',
+                  'ы': 'y', 'Ы': 'Y',
+                  'ь': '', 'Ь': '',
+                  'э': 'e', 'Э': 'E',
+                  'ю': 'iu', 'Ю': 'Iu',
+                  'я': 'ia', 'Я': 'Ia'}
+
 
 class SortingThread(Thread):
 
@@ -73,46 +111,8 @@ def create_folders_chain(chain, root, file_type):
 
 def normalize(string):
 
-    translit_table = {'а': 'a', 'А': 'A',
-                      'б': 'b', 'Б': 'B',
-                      'в': 'v', 'В': 'V',
-                      'г': 'g', 'Г': 'G',
-                      'ґ': 'g', 'Ґ': 'G',
-                      'д': 'd', 'Д': 'D',
-                      'е': 'e', 'Е': 'E',
-                      'ё': 'io', 'Ё': 'Io',
-                      'є': 'ye', 'Є': 'Ye',
-                      'ж': 'zh', 'Ж': 'Zh',
-                      'з': 'z', 'З': 'Z',
-                      'и': 'i', 'И': 'I',
-                      'й': 'y', 'Й': 'Y',
-                      'і': 'i', 'І': 'I',
-                      'ї': 'yi', 'Ї': 'Yi',
-                      'к': 'k', 'К': 'K',
-                      'л': 'l', 'Л': 'L',
-                      'м': 'm', 'М': 'M',
-                      'н': 'n', 'Н': 'N',
-                      'о': 'o', 'О': 'O',
-                      'п': 'p', 'П': 'P',
-                      'р': 'r', 'Р': 'R',
-                      'с': 's', 'С': 'S',
-                      'т': 't', 'Т': 'T',
-                      'у': 'u', 'У': 'U',
-                      'ф': 'f', 'Ф': 'F',
-                      'х': 'h', 'Х': 'H',
-                      'ц': 'ts', 'Ц': 'Ts',
-                      'ч': 'ch', 'Ч': 'Ch',
-                      'ш': 'sh', 'Ш': 'Sh',
-                      'щ': 'sch', 'Щ': 'Sch',
-                      'ъ': '', 'Ъ': '',
-                      'ы': 'y', 'Ы': 'Y',
-                      'ь': '', 'Ь': '',
-                      'э': 'e', 'Э': 'E',
-                      'ю': 'iu', 'Ю': 'Iu',
-                      'я': 'ia', 'Я': 'Ia'}
-
-    for key in translit_table:
-        string = string.replace(key, translit_table[key])
+    for key in TRANSLIT_TABLE:
+        string = string.replace(key, TRANSLIT_TABLE[key])
 
     return re.sub('[^A-Za-z0-9_\./:]', '_', string)
 
@@ -135,15 +135,14 @@ def order_files(folder, root):
 
 def remove_empty(folder):
 
-    while True:
+    empty_nonstd_folders_count = 1
+    while empty_nonstd_folders_count > 0:
         empty_nonstd_folders_count = 0
         tree = os.walk(folder)
         for item in tree:
             if item[1] == [] and item[2] == [] and not item[0].endswith(tuple(FILE_TYPES.keys())):
                 empty_nonstd_folders_count += 1
                 os.rmdir(item[0])
-        if empty_nonstd_folders_count == 0:
-            break
 
 
 def main(folder_name):
@@ -158,11 +157,7 @@ def main(folder_name):
     print('Removing empty folders...')
     remove_empty(folder_name)
     for key, value in files_info.items():
-        if key == 'unknown':
-            pass
-        elif key == 'known':
-            pass
-        else:
+        if key not in ['unknown', 'known']:
             print('-' * 30)
             print(f'{key}:')
             print('-' * 30)
