@@ -16,7 +16,7 @@ files_info = {'images': [], 'archives': [], 'documents': [],
               'audio': [], 'video': [], 'unknown': [], 'known': []}
 
 
-class MyThread(Thread):
+class SortingThread(Thread):
 
     def __init__(self, file_type, extensions, item, folder, root):
         super().__init__()
@@ -28,11 +28,11 @@ class MyThread(Thread):
 
     def run(self):
 
-        # Расширение файла
+        # File extension
         ext = self.item[self.item.rfind(".") + 1:]
         ext_upper = ext.upper()
         normalized_item = normalize(self.item)
-        # Определяем нормализованное имя папки назначения без учета корневой папки
+        # Defining normalized destination folder name excluding the root folder
         destination_folder = normalize(self.folder.replace(self.root, ''))
         destination_file_path = fr'{self.root}/{self.file_type}{destination_folder}/{normalized_item}'
         if ext_upper in self.extensions:
@@ -63,11 +63,11 @@ def create_folder(name):
 def create_folders_chain(chain, root, file_type):
 
     next_folder = ''
-    # Просмотр элементов пути для папки назначения
+    # Viewing of the path items for the destination folder
     for folder_part in chain.split('/'):
         if folder_part:
             next_folder += f'/{folder_part}'
-            # Создаем вложенную папку по цепочке
+            # Creating nested folder in chain order
             create_folder(fr'{root}/{file_type}{next_folder}')
 
 
@@ -119,17 +119,18 @@ def normalize(string):
 
 def order_files(folder, root):
 
-    # Перебираем элементы в текущей папке
+    # Searching through the items in the current folder
     for item in os.listdir(folder):
         if os.path.isdir(f'{folder}/{item}'):
-            # Если папка не относится к стандартным
+            # If the folder is not one of the standard ones
             if item not in list(FILE_TYPES.keys()):
-                # Рекурсивный просмотр папки
+                # Recursion through the folder
                 order_files(f'{folder}/{item}', root)
         else:
             for file_type, extensions in FILE_TYPES.items():
-                # Перебираем категории файлов и рассортировываем по стандартным папкам
-                MyThread(file_type, extensions, item, folder, root).start()
+                # Searching through the files categories and arranging by the standard folders
+                SortingThread(file_type, extensions,
+                              item, folder, root).start()
 
 
 def remove_empty(folder):
@@ -145,20 +146,16 @@ def remove_empty(folder):
             break
 
 
-def main():
+def main(folder_name):
 
-    if len(sys.argv) == 1:
-        folder_name = os.getcwd()
-    else:
-        folder_name = sys.argv[1]
     create_folder(fr'{folder_name}/archives')
     create_folder(fr'{folder_name}/audio')
     create_folder(fr'{folder_name}/documents')
     create_folder(fr'{folder_name}/images')
     create_folder(fr'{folder_name}/video')
-    print('Начинаем сортировку...')
+    print('Start sorting...')
     order_files(folder_name, folder_name)
-    print('Удаляем пустые папки...')
+    print('Removing empty folders...')
     remove_empty(folder_name)
     for key, value in files_info.items():
         if key == 'unknown':
@@ -174,16 +171,19 @@ def main():
     print('-' * 30)
     known_set = set(files_info["known"])
     if len(known_set):
-        print(f'Известные расширения: {known_set}')
+        print(f'Known extensions: {known_set}')
     else:
-        print(f'Известные расширения: НЕ НАЙДЕНЫ')
+        print(f'Known extensions: NOT FOUND')
     print('-' * 30)
     unknown_set = set(files_info["unknown"]) - set(files_info["known"])
     if len(unknown_set):
-        print(f'Неизвестные расширения: {unknown_set}')
+        print(f'Unknown extensions: {unknown_set}')
     else:
-        print(f'Неизвестные расширения: НЕ НАЙДЕНЫ')
+        print(f'Unknown extensions: NOT FOUND')
 
 
 if __name__ == '__main__':
-    main()
+    if len(sys.argv) == 1:
+        main(os.getcwd())
+    else:
+        main(sys.argv[1])
