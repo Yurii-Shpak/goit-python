@@ -2,7 +2,9 @@ from datetime import datetime
 from multiprocessing import Pool
 
 
-def assertion(a, b, c, d):
+def assertion(a, b, c, d, start_time):
+    print(
+        f'Time spent is {(datetime.now() - start_time).total_seconds()} seconds.')
     assert a == [1, 2, 4, 8, 16, 32, 64, 128]
     assert b == [1, 3, 5, 15, 17, 51, 85, 255]
     assert c == [1, 3, 9, 41, 123, 271, 369, 813, 2439, 11111, 33333, 99999]
@@ -32,16 +34,10 @@ if __name__ == '__main__':
 
     start_time = datetime.now()
     a, b, c, d = factorize(128, 255, 99999, 10651060)
-    print(
-        f'Time spent is {(datetime.now() - start_time).total_seconds()} seconds.')
-
-    assertion(a, b, c, d)
+    assertion(a, b, c, d, start_time)
 
     start_time = datetime.now()
     with Pool(processes=4) as pool:
         a, b, c, d = tuple(
             pool.map(factorize_process, (128, 255, 99999, 10651060)))
-    print(
-        f'Time spent is {(datetime.now() - start_time).total_seconds()} seconds.')
-
-    assertion(a, b, c, d)
+    assertion(a, b, c, d, start_time)
