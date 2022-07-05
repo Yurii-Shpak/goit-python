@@ -8,7 +8,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import select
 from sqlalchemy import func
 
-from models import Contact
+from models import Contact, Phone
 
 # --------------------------------Prompt Toolkit-------------------------------
 from prompt_toolkit import prompt
@@ -69,7 +69,7 @@ def input_error(func):
             elif func.__name__ == 'change_email':
                 result = f'Error while changing email.'
             elif func.__name__ == 'change_phone':
-                result = f'Error while changing phone.'
+                result = f'Error while changing phone. Maybe you try to set phone number existing for some other contact.'
             elif func.__name__ == 'delete_address':
                 result = f'Error while deleting address.'
             elif func.__name__ == 'delete_birthday':
@@ -203,14 +203,11 @@ def add_phone(command_line):
         if re.search('\(0\d{2}\)\d{3}-\d{2}-\d{2}', phone) and len(phone) == 14:
             query = session.query(Contact).filter_by(id=key)
             contact_to_update = query.first()
-            if not contact_to_update.phone1:
-                query.update({'phone1': phone})
-            elif not contact_to_update.phone2:
-                query.update({'phone2': phone})
-            elif not contact_to_update.phone3:
-                query.update({'phone3': phone})
+            if phone in create_phones_list(contact_to_update):
+                return f'Phone number {phone} is already present for the contact "{contact_to_update.name}" with ID = {key}'
             else:
-                return 'You may add just 3 phone numbers for a contact!'
+                session.add(Phone(phone_number=phone,
+                            contact_id=contact_to_update.id))
             session.commit()
             return f'Phone {phone} for the contact "{contact_to_update.name}" with ID = {key} has been successfully added.'
         else:
@@ -220,7 +217,7 @@ def add_phone(command_line):
         return check_id_message
 
 
-# @input_error
+@input_error
 # можно задать другой диапазон вывода дней, по умолчанию 7
 def coming_birthday(command_line):
 
@@ -252,8 +249,10 @@ def remove(command_line):
     if check_id_result == 0:
         contact_to_remove = session.query(Contact).filter_by(
             id=int(command_line[0])).first().name
-        session.query(Contact).filter_by(
-            id=int(command_line[0])).delete()
+        session.query(Phone).filter_by(
+            contact_id=int(command_line[0])).delete()
+        session.commit()
+        session.query(Contact).filter_by(id=int(command_line[0])).delete()
         session.commit()
         return f'Contact "{contact_to_remove}" with ID = {command_line[0]} has been successfully removed.'
     else:
@@ -294,19 +293,13 @@ def delete_phone(command_line):
         key, phone = prepare_value(command_line)
         query = session.query(Contact).filter_by(id=key)
         contact_to_update = query.first()
-        if contact_to_update.phone1 == phone:
-            query.update({'phone1': contact_to_update.phone2})
-            query.update({'phone2': contact_to_update.phone3})
-            query.update({'phone3': None})
-        elif contact_to_update.phone2 == phone:
-            query.update({'phone2': contact_to_update.phone3})
-            query.update({'phone3': None})
-        elif contact_to_update.phone3 == phone:
-            query.update({'phone3': None})
+        if phone in create_phones_list(contact_to_update):
+            session.query(Phone).filter_by(phone_number=phone,
+                                           contact_id=contact_to_update.id).delete()
+            session.commit()
+            return f'Phone number {phone} for the contact "{contact_to_update.name}" with ID = {command_line[0]} has been successfully deleted.'
         else:
             return f'The phone number {phone} is not found for this contact!'
-        session.commit()
-        return f'Phone number {phone} for the contact "{contact_to_update.name}" with ID = {command_line[0]} has been successfully deleted.'
     else:
         return check_id_message
 
@@ -340,16 +333,13 @@ def change_phone(command_line):
            len(phones[0]) == 14 and len(phones[1]) == 14:
             query = session.query(Contact).filter_by(id=command_line[0])
             contact_to_update = query.first()
-            if contact_to_update.phone1 == phones[0]:
-                query.update({'phone1': phones[1]})
-            elif contact_to_update.phone2 == phones[0]:
-                query.update({'phone2': phones[1]})
-            elif contact_to_update.phone3 == phones[0]:
-                query.update({'phone3': phones[1]})
+            if phones[0] in create_phones_list(contact_to_update):
+                session.query(Phone).filter_by(
+                    phone_number=phones[0], contact_id=contact_to_update.id).update({'phone_number': phones[1]})
+                session.commit()
+                return f'Phone {phones[0]} for the contact "{contact_to_update.name}" with ID = {command_line[0]} has been successfully changed for {phones[1]}.'
             else:
                 return f'The phone number {phones[0]} is not found for this contact!'
-            session.commit()
-            return f'Phone {phones[0]} for the contact "{contact_to_update.name}" with ID = {command_line[0]} has been successfully changed for {phones[1]}.'
         else:
             raise CustomException(
                 'Wrong phone number format! Use (0XX)XXX-XX-XX format!')
@@ -374,6 +364,14 @@ def help_common(command_line):
     return msg
 
 
+def create_phones_list(contact):
+    query = session.query(Phone).filter_by(contact_id=contact.id)
+    if query.count() == 0:
+        return '---'
+    else:
+        return ', '.join([phone.phone_number for phone in query.all()])
+
+
 def print_contact(contact):
 
     email = '---' if contact.email == None else contact.email
@@ -381,16 +379,7 @@ def print_contact(contact):
     birthday = '---' if contact.birthday == None else datetime.strftime(
         contact.birthday, '%d.%m.%Y')
 
-    if contact.phone1 is None:
-        phones = '---'
-    else:
-        phones = contact.phone1
-        if contact.phone2:
-            phones += f', {contact.phone2}'
-        if contact.phone3:
-            phones += f', {contact.phone3}'
-
-    print(f'\n{contact.id}{"-" * (109 - len(str(contact.id)))}┐\n| {contact.name:<51} Phones: {phones:<46} |\
+    print(f'\n{contact.id}{"-" * (109 - len(str(contact.id)))}┐\n| {contact.name:<51} Phones: {create_phones_list(contact):<46} |\
             \n| Email: {email:<73} Date of birth: {birthday:<10} |\
             \n| Address: {address:<97} |\n└{"-" * 108}┘')
 
@@ -403,9 +392,7 @@ def search(command_line):
         for contact in session.query(Contact).all():
             if search_str.lower() in str(contact.name).lower() or \
                search_str.lower() in str(contact.address).lower() or \
-               search_str.lower() in str(contact.phone1).lower() or \
-               search_str.lower() in str(contact.phone2).lower() or \
-               search_str.lower() in str(contact.phone3).lower() or \
+               search_str.lower() in create_phones_list(contact) or \
                search_str.lower() in str(contact.email).lower():
                 print_contact(contact)
                 contacts_count += 1
