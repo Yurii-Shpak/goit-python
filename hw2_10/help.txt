@@ -1,0 +1,123 @@
+"""
+    Please select any command from listed below with examples:
+
+    add
+        Adding new contact in the format LAST_NAME FIRST_NAME FATHER_NAME.
+        Examples:
+            add Petrenko
+            add Petrenko Pasha
+            add Semenchuk Semen Semenovich
+
+    add address
+        Adding an address for the contact with the ID specified.
+        Examples:
+            add address 11 <Press ENTER>
+            Enter you address >>> Kyiv, Nauki, 3, ap. 5 <Press ENTER>
+
+    add birthday
+        Adding a date of birth in the DD.MM.YYYY format for the contact
+        with the ID specified.
+        Examples:
+            add birthday 11 01.05.1985
+
+    add email
+        Adding an email for the contact with the ID specified.
+        Examples:
+            add email 11 sania.kyiv@example.com
+
+    add phone
+        Adding a phone number in the (0XX)XXX-XX-XX format for the contact
+        with the ID specified.
+        Examples:
+            add phone 11 (050)555-55-55
+
+    change address
+        Changing address for the contact with the ID specified.
+        Examples:
+            change address 11 <Press ENTER>
+            Enter you address >>> Lviv, Shevchenka, 102 <Press ENTER>
+
+    change birthday
+        Changing date of birth in the DD.MM.YYYY format for the contact with
+        the ID specified.
+        Examples:
+            change birthday 11 02.05.1985
+
+    change email
+        Changing email for the contact with the IDspecified.
+        Examples:
+            change email 11 alex.lviv@example.com
+
+    change phone
+        Changing phone number for the contact with the ID specified.
+        Format of the command: change phone <ID> <old phone> <new phone>
+        Examples:
+            change phone 11 (050)555-55-55 (095)444-44-44
+    
+    clean
+        Ordering files in a specified folder, where documents, images, videos and
+        other known file types are being moved into coresponding automatically
+        created folders.
+        Examples:
+            clean d:\MyFiles
+
+    close
+        Exit.
+
+    coming birthday
+        Displaying all the contacts with date of birth within the specified
+        number of days starting from today.
+        If the number of days is not specified, the default value is 7.
+        Examples:
+            All contacts whose birthday is tommorrow:
+                coming birthday 1
+            All contacts whose birthday is during next seven days:
+                coming birthday
+
+    delete address
+        Deleting address for the contact with the ID specified.
+        Examples:
+            delete address 11
+
+    delete birthday
+        Deleting date of birth for the contact with the ID specified.
+        Examples:
+            delete birthday 11
+
+    delete email
+        Deleting email for the contact with the ID specified.
+        Examples:
+            delete email 11
+
+    delete phone
+        Deleting phone number for the contact with the ID specified.
+        Examples:
+            delete phone 11 (050)555-55-55
+
+    exit
+        Exit.
+
+    good bye
+        Exit.
+
+    help
+        Displaying this help.
+
+    remove
+        Removing a record for the contact with the ID specified.
+        Examples:
+            remove 11
+
+    search
+        Searching of contacts matching to the specified search string (case insensitive).
+        Examples:
+            search john
+            search akademika glushkova
+
+    show all
+        Displaying content of the contacts book.
+
+    show <ID>
+        Displaying content of the contact with ID specified.
+
+    """
