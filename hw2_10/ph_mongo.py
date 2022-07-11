@@ -7,7 +7,7 @@ from prompt_toolkit import prompt
 import re
 import os.path
 from datetime import datetime, timedelta
-from models import Contact
+from models import Contact, Email, Birthday, Phone
 import connect
 
 
@@ -109,8 +109,8 @@ def prepare_value_3(command_line):
 def add_name(command_line):
     if command_line:
         new_name = ' '.join(command_line)
-        Contact(name=new_name, address='', email='',
-                birthday='', phones=[]).save()
+        Contact(name=new_name, address='', email=Email(),
+                birthday=Birthday(), phones=[]).save()
         return f'Contact with the name "{new_name}" has been successfully added. ID = {Contact.objects().order_by("-id").first().id}'
     else:
         raise CustomException(
@@ -148,7 +148,9 @@ def add_birthday(command_line):
     if check_id_result == 0:
         key, birthday = prepare_value(command_line)
         if re.search('\d{2}\.\d{2}.\d{4}', birthday) and datetime.strptime(birthday, '%d.%m.%Y'):
-            Contact.objects(id=key).update_one(birthday=birthday)
+            new_birthday = Birthday()
+            new_birthday.value = birthday
+            Contact.objects(id=key).update_one(birthday=new_birthday)
             return f'Birthday {birthday} for the contact "{Contact.objects(id=key).first().name}" with ID = {key} has been successfully set.'
         else:
             raise CustomException(
@@ -163,7 +165,9 @@ def add_email(command_line):
     if check_id_result == 0:
         key, email = prepare_value(command_line)
         if re.search('[a-zA-Z][\w.]+@[a-zA-z]+\.[a-zA-Z]{2,}', email):
-            Contact.objects(id=key).update_one(email=email)
+            new_email = Email()
+            new_email.value = email
+            Contact.objects(id=key).update_one(email=new_email)
             return f'Email {email} for the contact "{Contact.objects(id=key).first().name}" with ID = {key} has been successfully set.'
         else:
             raise CustomException(
@@ -177,12 +181,16 @@ def add_phone(command_line):
     check_id_result, check_id_message = check_id(command_line)
     if check_id_result == 0:
         key, phone = prepare_value(command_line)
+        contact_to_update = Contact.objects(id=key).get()
+        if len(contact_to_update.phones) == 3:
+            return 'There are 3 numbers in the list of phones alredy. It cannot contain more.'
         if re.search('\(0\d{2}\)\d{3}-\d{2}-\d{2}', phone) and len(phone) == 14:
-            contact_to_update = Contact.objects(id=key).get()
-            if phone in contact_to_update.phones:
+            if phone in create_phones_list(contact_to_update.phones):
                 return f'Phone number {phone} is already present for the contact "{contact_to_update.name}" with ID = {key}'
             else:
-                contact_to_update.phones.append(phone)
+                new_phone = Phone()
+                new_phone.value = phone
+                contact_to_update.phones.append(new_phone)
                 contact_to_update.save()
                 return f'Phone {phone} for the contact "{contact_to_update.name}" with ID = {key} has been successfully added.'
         else:
@@ -202,11 +210,11 @@ def coming_birthday(command_line):
 
     contacts_count = 0
     for contact in Contact.objects.all():
-        if contact.birthday:
+        if contact.birthday.value:
             current_date = datetime.now().date()
             timedelta_filter = timedelta(days=range_days)
             birthday_date = datetime.strptime(
-                contact.birthday, '%d.%m.%Y').date()
+                contact.birthday.value, '%d.%m.%Y').date()
             current_birthday = birthday_date.replace(year=current_date.year)
             if current_date <= current_birthday <= current_date + timedelta_filter:
                 print_contact(contact)
@@ -235,9 +243,14 @@ def clear_field(command_line, field_name, field_lable):
         if field_name == 'address':
             Contact.objects(id=command_line[0]).update_one(address='')
         if field_name == 'email':
-            Contact.objects(id=command_line[0]).update_one(email='')
+            new_email = Email()
+            new_email.value = ''
+            Contact.objects(id=command_line[0]).update_one(email=new_email)
         if field_name == 'birthday':
-            Contact.objects(id=command_line[0]).update_one(birthday='')
+            new_birthday = Birthday()
+            new_birthday.value = ''
+            Contact.objects(id=command_line[0]).update_one(
+                birthday=new_birthday)
         return f'{field_lable} for the contact "{Contact.objects(id=command_line[0]).get().name}" with ID = {command_line[0]} has been successfully deleted.'
     else:
         return check_id_message
@@ -263,9 +276,12 @@ def delete_phone(command_line):
     check_id_result, check_id_message = check_id(command_line)
     if check_id_result == 0:
         key, phone = prepare_value(command_line)
-        if phone in create_phones_list(Contact.objects(id=key).get().phones):
-            contact_to_update = Contact.objects(id=key).get()
-            contact_to_update.phones.remove(phone)
+        contact_to_update = Contact.objects(id=key).get()
+        if phone in create_phones_list(contact_to_update.phones):
+            for i in range(len(contact_to_update.phones)):
+                if contact_to_update.phones[i].value == phone:
+                    contact_to_update.phones.pop(i)
+                    break
             contact_to_update.save()
             return f'Phone number {phone} for the contact "{contact_to_update.name}" with ID = {command_line[0]} has been successfully deleted.'
         else:
@@ -301,9 +317,14 @@ def change_phone(command_line):
         if re.search('\(0\d{2}\)\d{3}-\d{2}-\d{2}', phones[0]) and re.search('\(0\d{2}\)\d{3}-\d{2}-\d{2}', phones[1]) and \
            len(phones[0]) == 14 and len(phones[1]) == 14:
             contact_to_update = Contact.objects(id=command_line[0]).get()
+            if phones[1] in create_phones_list(contact_to_update.phones):
+                raise CustomException(
+                    f'The phone number {phones[1]} is already present in the list of phones.')
             if phones[0] in create_phones_list(contact_to_update.phones):
-                contact_to_update.phones[contact_to_update.phones.index(
-                    phones[0])] = phones[1]
+                for i in range(len(contact_to_update.phones)):
+                    if contact_to_update.phones[i].value == phones[0]:
+                        contact_to_update.phones[i].value = phones[1]
+                        break
                 contact_to_update.save()
                 return f'Phone {phones[0]} for the contact "{contact_to_update.name}" with ID = {command_line[0]} has been successfully changed for {phones[1]}.'
             else:
@@ -335,14 +356,15 @@ def create_phones_list(phones):
     if phones == []:
         return '---'
     else:
-        return ', '.join(phones)
+        phones_list = [phone.value for phone in phones]
+        return ', '.join(phones_list)
 
 
 def print_contact(contact):
 
     address = '---' if contact.address == '' else contact.address
-    email = '---' if contact.email == '' else contact.email
-    birthday = '---' if contact.birthday == '' else contact.birthday
+    email = '---' if contact.email.value == '' else contact.email.value
+    birthday = '---' if contact.birthday.value == '' else contact.birthday.value
 
     print(f'\nID {contact.id} {"-" * (105 - len(str(contact.id)))}┐\
             \n| {contact.name:<51} Phones: {create_phones_list(contact.phones):<46} |\
@@ -359,8 +381,8 @@ def search(command_line):
             if search_str.lower() in contact.name.lower() or \
                search_str.lower() in contact.address.lower() or \
                search_str.lower() in create_phones_list(contact.phones) or \
-               search_str.lower() in contact.email.lower() or \
-               search_str.lower() in contact.birthday.lower():
+               search_str.lower() in contact.email.value.lower() or \
+               search_str.lower() in contact.birthday.value.lower():
                 print_contact(contact)
                 contacts_count += 1
         if contacts_count == 0:
@@ -432,7 +454,6 @@ def get_handler(command):
 
 def main():
 
-    print('Connecting to the database...')
     print(
         f'Database "Contacts" is connected. It has {Contact.objects.count()} contacts.')
     print("Enter 'help' command to see all the commands available.")
