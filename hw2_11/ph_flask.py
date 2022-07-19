@@ -92,7 +92,7 @@ def extend_arg_str(arg_str, request_args):
     return arg_str
 
 
-@app.route("/delete/<id>", methods=["GET"], strict_slashes=False)
+@app.route("/delete/<id>", strict_slashes=False)
 def delete(id):
     contact_name = session.query(Contact).filter_by(id=id).first().name
     session.query(Phone).filter_by(contact_id=id).delete()
