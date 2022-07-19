@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Personal Helper</title>
+  <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css" />
+</head>
+
+<body>
+  <main class="container">
+    <nav style="margin-bottom: 20px; border-bottom: 2px solid; padding-left: 30px">
+      <ul>
+        <li><a
+            href="/contact/?{% if sort_by %}sorted={{sort_by}}{% else %}sorted=name{% endif %}{% if search_str %}&search={{search_str}}{% endif %}{% if birthday_days %}&birthday_days={{birthday_days}}{% endif %}"
+            role="button">
+            Add contact</a>
+        </li>
+        <li>
+          <form method="GET" action="/">
+            Search:
+            {% if request.args.get('sorted') %}
+            <input type="hidden" name="sorted" value="{{request.args.get('sorted')}}" />
+            {% endif %}
+            {% if request.args.get('birthday_days') %}
+            <input type="hidden" name="birthday_days" value="{{request.args.get('birthday_days')}}" />
+            {% endif %}
+            <table borders="none">
+              <tr>
+                <td><input type="text" name="search" size="35" {% if search_str %} value="{{search_str}}" {% endif %} />
+                </td>
+                <td><button type="submit" style="width:100px;">Find</button></td>
+              </tr>
+            </table>
+          </form>
+        </li>
+        <li>
+          <form method="GET" action="/">
+            Find birthdays within days:
+            <table borders="none">
+              <tr>
+                <td><input type="number" name="birthday_days" min="1" max="365"
+                    value="{% if birthday_days %}{{birthday_days}}{% else %}7{% endif %}" size="15" />
+                  <input type="hidden" name="sorted" value="birthday" />
+                </td>
+                <td><button type="submit" style="width:100px;">Find</button></td>
+              </tr>
+            </table>
+          </form>
+        </li>
+      </ul>
+    </nav>
+    {% if message %}
+    <p style="color: green;">{{message|safe}}</p>
+    {% endif %}
+    {% if alert %}
+    <p style="color: red;">{{alert|safe}}</p>
+    {% endif%}
+    {% if search_str %}
+    <p><b>{{size}}</b> contacts has been found for the search string <b>{{search_str}}</b>.
+      <a role="button" style="float:right;" href="/?{% if sort_by %}sorted={{sort_by}}{% else %}sorted=name{% endif %}">
+        Show all contacts
+      </a>
+    </p>
+    {% elif birthday_days %}
+    <p>For <b>{{size}}</b> contacts the birthday is within <b>{{birthday_days}}</b> days.
+      <a role="button" style="float:right;" href="/?{% if sort_by %}sorted={{sort_by}}{% else %}sorted=name{% endif %}">
+        Show all contacts
+      </a>
+    </p>
+    {% else %}
+    <p>There are <b>{{size}}</b> contacts in the database.</p>
+    {% endif %}
+    <table>
+      <tr>
+        <td>{% if sort_by != "id" %}
+          <a
+            href="/?sorted=id{% if search_str %}&search={{search_str}}{% endif %}{% if birthday_days %}&birthday_days={{birthday_days}}{% endif %}">
+            <b>ID</b>
+          </a>
+          {% else %}
+          <b>ID&nbsp;&#9660;</b>
+          {% endif %}
+        </td>
+        <td>{% if sort_by != "name" %}
+          <a
+            href="/?sorted=name{% if search_str %}&search={{search_str}}{% endif %}{% if birthday_days %}&birthday_days={{birthday_days}}{% endif %}">
+            <b>Name</b>
+          </a>
+          {% else %}
+          <b>Name&nbsp;&#9660;</b>
+          {% endif %}
+        </td>
+        <td>{% if sort_by != "address" %}
+          <a
+            href="/?sorted=address{% if search_str %}&search={{search_str}}{% endif %}{% if birthday_days %}&birthday_days={{birthday_days}}{% endif %}">
+            <b>Address</b>
+          </a>
+          {% else %}
+          <b>Address&nbsp;&#9660;</b>
+          {% endif %}
+        </td>
+        <td><b>Email</b></td>
+        <td><b>Phones</b></td>
+        <td>{% if sort_by != "birthday" %}
+          <a
+            href="/?sorted=birthday{% if search_str %}&search={{search_str}}{% endif %}{% if birthday_days %}&birthday_days={{birthday_days}}{% endif %}">
+            <b>Birthday</b>
+          </a>
+          {% else %}
+          <b>Birthday&nbsp;&#9660;</b>
+          {% endif %}
+        </td>
+        <td><b>Actions</b></td>
+      </tr>
+      {% for contact in contacts%}
+      <tr valign="top">
+        <td>{{contact.id}}</td>
+        <td>{{contact.name}}</td>
+        {% if contact.address %}
+        <td>{{contact.address}}</td>
+        {% else %}
+        <td></td>
+        {% endif %}
+        {% if contact.email %}
+        <td>{{contact.email}}</td>
+        {% else %}
+        <td></td>
+        {% endif %}
+        <td>{{contact.phones}}</td>
+        {% if contact.birthday %}
+        <td>{{contact.birthday}}</td>
+        {% else %}
+        <td></td>
+        {% endif %}
+        <td>
+          <a
+            href="/edit/{{contact.id}}?{% if sort_by %}sorted={{sort_by}}{% else %}sorted=name{% endif %}{% if search_str %}&search={{search_str}}{% endif %}{% if birthday_days %}&birthday_days={{birthday_days}}{% endif %}">
+            Edit
+          </a>
+          <a
+            href="/delete/{{contact.id}}?{% if sort_by %}sorted={{sort_by}}{% else %}sorted=name{% endif %}{% if search_str %}&search={{search_str}}{% endif %}{% if birthday_days %}&birthday_days={{birthday_days}}{% endif %}">
+            Delete
+          </a>
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+  </main>
+</body>
+
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Add contact</title>
+  <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css" />
+</head>
+
+<body>
+  <main class="container">
+    <nav style="margin-bottom: 20px; border-bottom: 2px solid; padding-left: 30px">
+      <ul>
+        <li><a
+            href="/?{% if request.args.get('sorted') %}sorted={{request.args.get('sorted')}}{% else %}sorted=name{% endif %}{% if request.args.get('search') %}&search={{request.args.get('search')}}{% endif %}{% if request.args.get('birthday_days') %}&birthday_days={{request.args.get('birthday_days')}}{% endif %}"
+            role="button"> Back to the home page </a></li>
+      </ul>
+    </nav>
+    <form method="POST" action="{{action}}">
+      <div style="padding: 10px">
+        <label>ID: <b>{{id}}</b> </label>
+      </div>
+      <div style="padding: 10px">
+        <label>Name:
+          <input type="text" name="name" required {% if name %} value="{{name}}" {% endif %} />
+        </label>
+      </div>
+      <div style="padding: 10px">
+        <label>Address:
+          <input type="text" name="address" {% if address %} value="{{address}}" {% endif %} />
+        </label>
+      </div>
+      <div style="padding: 10px">
+        <label>Email:
+          <input type="email" name="email" {% if email %} value="{{email}}" {% endif %} />
+        </label>
+      </div>
+      <div style="padding: 10px">
+        <label>Birthday:
+          <input type="date" name="birthday" {% if birthday %} value="{{birthday}}" {% endif %} />
+        </label>
+      </div>
+      <div style="padding: 10px">
+        <label>Phones:<br />
+          1. <input type="tel" name="phone1" pattern="\(0\d{2}\)\d{3}-\d{2}-\d{2}"
+            style="width:300px;margin-right:30px;" placeholder="(0XX)XXX-XX-XX" {% if phones|length>0 %}
+          value="{{phones[0]}}" {% endif %} />
+          2. <input type="tel" name="phone2" pattern="\(0\d{2}\)\d{3}-\d{2}-\d{2}"
+            style="width:300px;margin-right:30px;" placeholder="(0XX)XXX-XX-XX" {% if phones|length>1 %}
+          value="{{phones[1]}}" {% endif %} />
+          3. <input type="tel" name="phone3" pattern="\(0\d{2}\)\d{3}-\d{2}-\d{2}"
+            style="width:300px;margin-right:30px;" placeholder="(0XX)XXX-XX-XX" {% if phones|length>2 %}
+          value="{{phones[2]}}" {% endif %} />
+        </label>
+      </div>
+      {% if request.args.get('sorted') %}
+      <input type="hidden" name="sorted" value="{{request.args.get('sorted')}}" />
+      {% endif %}
+      {% if request.args.get('search') %}
+      <input type="hidden" name="search" value="{{request.args.get('search')}}" />
+      {% endif %}
+      {% if request.args.get('birthday_days') %}
+      <input type="hidden" name="birthday_days" value="{{request.args.get('birthday_days')}}" />
+      {% endif %}
+      <div class="grid">
+        <button type="reset" class="secondary">Reset</button>
+        <button type="submit">Apply</button>
+      </div>
+    </form>
+  </main>
+</body>
+
+</html>
