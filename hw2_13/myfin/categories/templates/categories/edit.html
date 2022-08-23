@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>My Finances | Category {{ form_type }}</title>
+    <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css" />
+</head>
+
+<body>
+    <main class="container">
+        <h1>Category {{ form_type }}</h1>
+        <form action="/myfin/categories/{{ form_url }}/" method="post">
+            {% csrf_token %}
+            {% if form_type == "Editing" %}
+            {% for item in category %}
+            <b>Category ID:</b> {{ item.id }}<br /><input type="hidden" name="category_id" value="{{ item.id }}" />
+            <b>Category name:</b> <input name="category_name" value="{{ item.name }}" required="required" />
+            {% endfor %}
+            {% else %}
+            <b>Category name:</b> <input name="category_name" value="" required="required" /><br />
+            {% endif %}
+            <input type="submit" value="Apply" style="width:48%;background-color:rgb(75, 172, 83);" />
+            <a href="/myfin/categories/"><input type="button" value="Cancel"
+                    style="width:48%;background-color:rgb(172, 94, 94);" /></a>
+        </form>
+    </main>
+</body>
+
+</html>

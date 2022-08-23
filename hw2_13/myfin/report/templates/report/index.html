@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>My Finances | Report</title>
+    <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css" />
+</head>
+
+<body>
+    <main class="container">
+        <h1>Report</h1>
+        <nav style="margin-bottom: 20px; border-bottom: 2px solid; padding-left: 30px">
+            <ul>
+                <li><a href="/myfin/income/" role="button">Income</a></li>
+                <li><a href="/myfin/expenses/" role="button">Expenses</a></li>
+                <li><a href="/myfin/categories/" role="button">Expenses categories</a></li>
+            </ul>
+        </nav>
+        <form action="/myfin/report/" method="GET">
+            Report period is from
+            {% if request.GET.from_date %}
+            <input type="date" name="from_date" value="{{ request.GET.from_date }}" style="width:200px;" />
+            {% else %}
+            <input type="date" name="from_date" value="{% now 'Y-m-d' %}" style="width:200px;" />
+            {% endif %}
+            to
+            {% if request.GET.to_date %}
+            <input type="date" name="to_date" value="{{ request.GET.to_date }}" style="width:200px;" />
+            {% else %}
+            <input type="date" name="to_date" value="{% now 'Y-m-d' %}" style="width:200px;" />
+            {% endif %}
+            <p>
+                <input type="checkbox" id="by_categories" name="by_categories"
+                    onclick="if (this.checked) {document.getElementById('category').style.display='inline-block';} else {document.getElementById('category').style.display='none';}"
+                    {% if request.GET.by_categories %} checked {% endif %} />
+                <label for="by_categories">Show expenses by categories</label>
+                {% if request.GET.by_categories %}
+                <select id="category" name="category" style="width:600px;">
+                    {% else %}
+                    <select id="category" name="category" style="width:600px;display:none;">
+                        {% endif %}
+                        <option value="0">All</option>
+                        {% for category in categories_list %}
+                        {% if category.id == request.GET.category|add:"0" %}
+                        <option value="{{ category.id }}" selected>{{ category.name }}</option>
+                        {% else %}
+                        <option value="{{ category.id }}">{{ category.name }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+            </p>
+            <input type="submit" value="Apply" style="width:200px;background-color:rgb(75, 172, 83);" />
+        </form>
+        {% if is_report %}
+        <table style="font-size:larger;">
+            <tr>
+                <td style="color: green;text-align: right;">
+                    Income for the period: <b>{{ total_income|floatformat:2 }}</b>
+                </td>
+                <td style="color: red;text-align: right;">
+                    Expenses for the period: <b>{{ total_expenses|floatformat:2 }}</b>
+                </td>
+                <td style="text-align:right;">
+                    Balance for the period: <b>{{ balance|floatformat:2 }}</b>
+                </td>
+            </tr>
+            {% if are_categories %}
+            {% for item in expenses_by_categories %}
+            <tr>
+                <td></td>
+                <td style="color: red;text-align: right;">{{ item.category__name }}: <b>
+                        {{ item.category_amount|floatformat:2 }}</b></td>
+                <td></td>
+            </tr>
+            {% endfor %}
+            {% endif %}
+        </table>
+        {% endif %}
+    </main>
+    </form>
+</body>
+
+</html>

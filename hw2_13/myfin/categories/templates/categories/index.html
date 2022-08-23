@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>My Finances | Expenses Categories</title>
+    <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css" />
+</head>
+
+<body>
+    <main class="container">
+        <h1>Expenses Categories</h1>
+        <nav style="margin-bottom: 20px; border-bottom: 2px solid; padding-left: 30px">
+            <ul>
+                <li><a href="/myfin/categories/add/" role="button" style="background-color: rgb(58, 139, 58);">Add
+                        Cagetory</a></li>
+                <li><a href="/myfin/income/" role="button">Income</a></li>
+                <li><a href="/myfin/expenses/" role="button">Expenses</a></li>
+                <li><a href="/myfin/report/" role="button">Report</a></li>
+            </ul>
+        </nav>
+        {% if msg_text %}
+        {% if msg_type == "ok" %}
+        <p style="color:green;"><b>{{ msg_text }}</b></p>
+        {% endif %}
+        {% if msg_type == "error" %}
+        <p style="color:red;"><b>{{ msg_text }}</b></p>
+        {% endif %}
+        {% endif %}
+        {% if categories_list %}
+        <table>
+            <tr>
+                <td><b>ID</b></td>
+                <td><b>Name&nbsp;&#9660;</b></td>
+                <td><b>Actions</b></td>
+            </tr>
+            {% for item in categories_list %}
+            <tr>
+                <td>{{ item.id }}</td>
+                <td>{{ item.name }}</td>
+                <td>
+                    <a href="/myfin/categories/edit/{{ item.id }}/">Edit</a>
+                    <a href="#" onclick="document.getElementById('category_id').textContent='{{ item.id }}';
+                                 document.getElementById('id').value='{{ item.id }}';
+                                 document.getElementById('name').value='{{ item.name }}';
+                                 document.getElementById('category_name').textContent='{{ item.name }}';
+                                 document.getElementById('deleting_form').style.display='block';
+                                 document.getElementById('backdrop').style.display='block' ;">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <p>No data about categories.</p>
+        {% endif %}
+        <form id="deleting_form" action="/myfin/categories/" method="POST"
+            style="display:none;position:absolute;width:600px;height:300px;left:50%;margin-left:-300px;top:50%;margin-top:-150px;background-color:white;opacity:1.0;z-index:100;padding:20px;">
+            <p>Do you really want to delete the category with ID=<b><span id="category_id"></span></b>?</p>
+            <p>The name is <b><span id="category_name"></span></b>.</p>
+            <input type="hidden" id="id" name="id" value="" readonly />
+            <input type="hidden" id="name" name="name" value="" readonly />
+            <input type="submit" value="Yes"
+                style="position:absolute;bottom:0;left:0;width:300px;background-color:rgb(75, 172, 83);margin-bottom:0;" />
+            <input type="button" value="No"
+                style="position:absolute;bottom:0;left:300px;width:300px;background-color:rgb(172, 94, 94);margin-bottom:0;"
+                onclick="document.getElementById('deleting_form').style.display='none';document.getElementById('backdrop').style.display='none';" />
+        </form>
+        <dev id="backdrop"
+            style="display:none;background-color:black;opacity:0.9;position:absolute;top:0;left:0;width:100%;height:100%;z-index:99;">
+        </dev>
+    </main>
+</body>
+
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>My Finances | Income</title>
+    <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css" />
+</head>
+
+<body>
+    <main class="container">
+        <table style="font-size:larger;">
+            <tr>
+                <td style="color: green;">Total income: <b>{{ total_income|floatformat:2 }}</b></td>
+                <td style="color: red;">Total expenses: <b>{{ total_expenses|floatformat:2 }}</b></td>
+                <td>Balance: <b>{{ balance|floatformat:2 }}</b></td>
+            </tr>
+        </table>
+        <h1>Income</h1>
+        <nav style="margin-bottom: 20px; border-bottom: 2px solid; padding-left: 30px">
+            <ul>
+                <li><a href="/myfin/income/add/" role="button" style="background-color: rgb(58, 139, 58);">Add
+                        Income</a></li>
+                <li><a href="/myfin/expenses/" role="button">Expenses</a></li>
+                <li><a href="/myfin/categories/" role="button">Expenses categories</a></li>
+                <li><a href="/myfin/report/" role="button">Report</a></li>
+            </ul>
+        </nav>
+        {% if msg_text %}
+        {% if msg_type == "ok" %}
+        <p style="color:green;"><b>{{ msg_text }}</b></p>
+        {% endif %}
+        {% if msg_type == "error" %}
+        <p style="color:red;"><b>{{ msg_text }}</b></p>
+        {% endif %}
+        {% endif %}
+        {% if income_list %}
+        <table>
+            <tr>
+                <td><b>ID</b></td>
+                <td><b>Date&nbsp;&#9660;</b></td>
+                <td><b>Amount</b></td>
+                <td><b>Actions</b></td>
+            </tr>
+            {% for item in income_list %}
+            <tr>
+                <td>{{ item.id }}</td>
+                <td>{{ item.income_date|date:"d.m.Y" }}</td>
+                <td>{{ item.amount|floatformat:2 }}</td>
+                <td>
+                    <a href="/myfin/income/edit/{{ item.id }}/">Edit</a>
+                    <a href="#" onclick="document.getElementById('income_id').textContent='{{ item.id }}';
+                                 document.getElementById('id').value='{{ item.id }}';
+                                 document.getElementById('income_amount').textContent='{{ item.amount|floatformat:2 }}';
+                                 document.getElementById('income_date').textContent='{{ item.income_date }}';
+                                 document.getElementById('deleting_form').style.display='block';
+                                 document.getElementById('backdrop').style.display='block' ;">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <p>No data about income.</p>
+        {% endif %}
+        <form id="deleting_form" action="/myfin/income/" method="POST"
+            style="display:none;position:absolute;width:600px;height:300px;left:50%;margin-left:-300px;top:50%;margin-top:-150px;background-color:white;opacity:1.0;z-index:100;padding:20px;">
+            <p>Do you really want to delete the income item with ID=<b><span id="income_id"></span></b>?</p>
+            <p>The amound is <b><span id="income_amount"></span></b>.</p>
+            <p>The date is <b><span id="income_date"></span></b>.</p>
+            <input type="hidden" id="id" name="id" value="" readonly />
+            <input type="submit" value="Yes"
+                style="position:absolute;bottom:0;left:0;width:300px;background-color:rgb(75, 172, 83);margin-bottom:0;" />
+            <input type="button" value="No"
+                style="position:absolute;bottom:0;left:300px;width:300px;background-color:rgb(172, 94, 94);margin-bottom:0;"
+                onclick="document.getElementById('deleting_form').style.display='none';document.getElementById('backdrop').style.display='none';" />
+        </form>
+        <dev id="backdrop"
+            style="display:none;background-color:black;opacity:0.9;position:absolute;top:0;left:0;width:100%;height:100%;z-index:99;">
+        </dev>
+    </main>
+</body>
+
+</html>

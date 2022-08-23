@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>My Finances | Income Item {{ form_type }}</title>
+    <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css" />
+</head>
+
+<body>
+    <main class="container">
+        <h1>Income Item {{ form_type }}</h1>
+        <form action="/myfin/income/{{ form_url }}/" method="post">
+            {% csrf_token %}
+            {% if form_type == "Editing" %}
+            {% for item in income_item %}
+            <b>Income ID:</b> {{ item.id }}<br /><input type="hidden" name="income_id" value="{{ item.id}}" />
+            <b>Income amount:</b> <input type="number" name="income_amount" value="{{ item.amount }}"
+                style="width:200px;" step="0.01" /><br />
+            <b>Income date:</b> <input type="date" name="income_date" value="{{ item.income_date|date:'Y-m-d' }}"
+                style="width:200px;" /><br />
+            {% endfor %}
+            {% else %}
+            <b>Income amount:</b> <input type="number" name="income_amount" value="0.00" style="width:200px;"
+                step="0.01" /><br />
+            <b>Income date:</b> <input type="date" name="income_date" value="{% now 'Y-m-d' %}"
+                style="width:200px;" /><br />
+            {% endif %}
+            <input type="submit" value="Apply" style="width:48%;background-color:rgb(75, 172, 83);" />
+            <a href="/myfin/income/"><input type="button" value="Cancel"
+                    style="width:48%;background-color:rgb(172, 94, 94);" /></a>
+        </form>
+    </main>
+</body>
+
+</html>

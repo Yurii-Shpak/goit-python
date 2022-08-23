@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>My Finances | Expense Item {{ form_type }}</title>
+    <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css" />
+</head>
+
+<body>
+    <main class="container">
+        <h1>Expense Item {{ form_type }}</h1>
+        <form action="/myfin/expenses/{{ form_url }}/" method="post">
+            {% csrf_token %}
+            {% if form_type == "Editing" %}
+            {% for item in expense_item %}
+            <b>Expense ID:</b> {{ item.id }}<br /><input type="hidden" name="expense_id" value="{{ item.id }}" />
+            <b>Expense amount:</b> <input type="number" name="expense_amount" value="{{ item.amount }}"
+                style="width:200px;" step="0.01" /><br />
+            <b>Expense date:</b> <input type="date" name="expense_date" value="{{ item.expense_date|date:'Y-m-d' }}"
+                style="width:200px;" /><br />
+            <b>Expense category:</b>
+            <select name="expense_category" style="width:600px;">
+                {% for category in categories_list %}
+                {% if category == item.category %}
+                <option value="{{ category.id }}" selected>{{ category.name }}</option>
+                {% else %}
+                <option value="{{ category.id }}">{{ category.name }}</option>
+                {% endif %}
+                {% endfor %}
+            </select>
+            <br />
+            {% endfor %}
+            {% else %}
+            <b>Expense amount:</b> <input type="number" name="expense_amount" value="0.00" style="width:200px;"
+                step="0.01" /><br />
+            <b>Expense date:</b> <input type="date" name="expense_date" value="{% now 'Y-m-d' %}"
+                style="width:200px;" /><br />
+            <b>Expense category:</b>
+            <select name="expense_category" style="width:600px;">
+                {% for item in categories_list %}
+                <option value="{{ item.id }}">{{ item.name }}</option>
+                {% endfor %}
+            </select>
+            <br />
+            {% endif %}
+            <input type="submit" value="Apply" style="width:48%;background-color:rgb(75, 172, 83);" />
+            <a href="/myfin/expenses/"><input type="button" value="Cancel"
+                    style="width:48%;background-color:rgb(172, 94, 94);" /></a>
+        </form>
+    </main>
+</body>
+
+</html>
